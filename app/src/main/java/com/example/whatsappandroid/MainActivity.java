@@ -1,16 +1,22 @@
 package com.example.whatsappandroid;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -111,11 +117,62 @@ public class MainActivity extends AppCompatActivity {
         {
             SettingsPage();
         }
+        if (item.getItemId()==R.id.group_chat)
+        {
+            CreateGroup();
+        }
         if (item.getItemId()==R.id.find_friends)
         {
 
         }
         return true;
+    }
+
+    private void CreateGroup()
+    {
+        AlertDialog.Builder builder= new AlertDialog.Builder(MainActivity.this,R.style.AlertDialogTheme);
+        builder.setTitle("Enter Groups Name");
+        final EditText field = new EditText(getApplicationContext());
+        field.setHint("for example hackerone");
+        builder.setView(field);
+        builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String groupName = field.getText().toString();
+
+                if (TextUtils.isEmpty(groupName))
+                {
+                    Toast.makeText(getApplicationContext(),"Please give your group's name",Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    NewGroup(groupName);
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+
+        builder.show();
+
+    }
+
+    private void NewGroup(String groupName)
+    {
+        ref.child("Groups").child(groupName).setValue("").
+                addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful())
+                        {
+                            Toast.makeText(getApplicationContext(),"Group Name created successfully",Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
     }
 
     private void SettingsPage() {
