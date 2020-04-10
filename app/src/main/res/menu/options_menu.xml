@@ -2,19 +2,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 <item
-    android:title="Find Friends"
+    android:title="Nouveau amis"
     android:id="@+id/find_friends"
     app:showAsAction="never"
     >
 </item>
     <item
-        android:title="Settings"
+        android:title="Nouveau groupe"
+        android:id="@+id/group_chat"
+        app:showAsAction="never"
+        >
+    </item>
+    <item
+        android:title="Parametres"
         android:id="@+id/settings"
         app:showAsAction="never"
         >
     </item>
     <item
-        android:title="Log Out"
+        android:title="Deconnecter"
         android:id="@+id/log_out"
         app:showAsAction="never"
         >
