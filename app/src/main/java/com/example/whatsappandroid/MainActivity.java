@@ -123,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (item.getItemId()==R.id.find_friends)
         {
-
+            Intent find_friends_page = new Intent(getApplicationContext(),FindFriendsActivity.class);
+            startActivity(find_friends_page);
         }
         return true;
     }

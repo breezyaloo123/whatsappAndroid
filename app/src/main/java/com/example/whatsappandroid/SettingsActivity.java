@@ -1,9 +1,11 @@
 package com.example.whatsappandroid;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -11,7 +13,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -19,6 +24,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.util.HashMap;
 
@@ -31,7 +43,10 @@ public class SettingsActivity extends AppCompatActivity {
     private CircleImageView image;
     private FirebaseAuth mAuth;
     private DatabaseReference ref;
-    String currentUserid;
+    private StorageReference storageReference;
+    String currentUserid,downloadUrl;
+
+    private static final int galleriID=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
         mAuth = FirebaseAuth.getInstance();
         ref = FirebaseDatabase.getInstance().getReference();
+        storageReference = FirebaseStorage.getInstance().getReference().child("Profile Image");
         currentUserid = mAuth.getCurrentUser().getUid();
         button = findViewById(R.id.settings_button);
         username = findViewById(R.id.username);
@@ -54,9 +70,127 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
         RetrieveUsers();
+
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent gallery = new Intent();
+                gallery.setAction(Intent.ACTION_GET_CONTENT);
+                gallery.setType("image/*");
+                startActivityForResult(gallery,galleriID);
+            }
+        });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode==galleriID && resultCode==RESULT_OK && data!=null)
+        {
+            Uri imageUri = data.getData();
+            // start picker to get image for cropping and then use the image in cropping activity
+            CropImage.activity()
+                    .setGuidelines(CropImageView.Guidelines.ON)
+                    .setAspectRatio(1,1)
+                    .start(this);
+        }
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if(resultCode==RESULT_OK)
+            {
+                Uri resultUri = result.getUri();
+                final StorageReference storeRef = storageReference.child(currentUserid + ".jpg");
+
+                final UploadTask uploadTask = storeRef.putFile(resultUri);
+                uploadTask.addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        String messageError = e.toString();
+                        Toast.makeText(getApplicationContext(),"Error: "+messageError,Toast.LENGTH_LONG).show();
+
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Toast.makeText(getApplicationContext(),"image saved successfully",Toast.LENGTH_LONG).show();
+
+                        Task<Uri> uriTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                            @Override
+                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                if (!task.isSuccessful())
+                                {
+                                    throw task.getException();
+                                }
+
+                                downloadUrl = storeRef.getDownloadUrl().toString();
+                                return storeRef.getDownloadUrl();
+                            }
+                        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Uri> task) {
+                                if (task.isSuccessful())
+                                {
+                                    downloadUrl = task.getResult().toString();
+                                    Toast.makeText(getApplicationContext(),"Image saved SUCCEFULLY",Toast.LENGTH_LONG).show();
+                                    ref.child("users").child(currentUserid).child("image").setValue(downloadUrl)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful())
+                                                    {
+                                                        Toast.makeText(getApplicationContext(),"image saved successfully",Toast.LENGTH_LONG).show();
+                                                    }
+                                                    else
+                                                    {
+                                                        String error = task.getException().toString();
+                                                        Toast.makeText(getApplicationContext(),"Error: "+error,Toast.LENGTH_LONG).show();
+                                                    }
+                                                }
+                                            });
+                                }
+
+                            }
+                        });
+
+                    }
+                });
+//                storeRef.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+//                        if (task.isSuccessful())
+//                        {
+//                            Toast.makeText(getApplicationContext(),"Profile Image Updloaded successfully",Toast.LENGTH_LONG).show();
+//                            //final String downloadUrl = task.s
+//
+//                            ref.child("users").child(currentUserid).child("image").setValue(downloadUrl)
+//                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                @Override
+//                                public void onComplete(@NonNull Task<Void> task) {
+//                                    if (task.isSuccessful())
+//                                    {
+//                                        Toast.makeText(getApplicationContext(),"image saved successfully",Toast.LENGTH_LONG).show();
+//                                    }
+//                                    else
+//                                    {
+//                                        String error = task.getException().toString();
+//                                        Toast.makeText(getApplicationContext(),"Error: "+error,Toast.LENGTH_LONG).show();
+//                                    }
+//                                }
+//                            });
+//                        }
+//                        else
+//                        {
+//                            String error = task.getException().toString();
+//                            Toast.makeText(getApplicationContext(),"Error : "+error,Toast.LENGTH_LONG).show();
+//                        }
+//
+//                    }
+//                });
+            }
+        }
+    }
 
     private void SettingsUpdated() {
 
@@ -110,6 +244,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                             username.setText(retrieveUsername);
                             photo_status.setText(retrieveStatus);
+                            Picasso.get().load(retrievePhoto).into(image);
 
                         }
                         else if((dataSnapshot.exists()) && (dataSnapshot.hasChild("name")))
