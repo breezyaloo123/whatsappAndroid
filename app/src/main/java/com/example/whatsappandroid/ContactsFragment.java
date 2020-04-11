@@ -1,5 +1,6 @@
 package com.example.whatsappandroid;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -60,10 +61,19 @@ public class ContactsFragment extends Fragment {
                 .build();
         FirebaseRecyclerAdapter<Contacts, ContactsViewHolder> adapter = new FirebaseRecyclerAdapter<Contacts, ContactsViewHolder>(options) {
             @Override
-            protected void onBindViewHolder(@NonNull ContactsViewHolder holder, int position, @NonNull Contacts model) {
+            protected void onBindViewHolder(@NonNull ContactsViewHolder holder, final int position, @NonNull Contacts model) {
                 holder.username.setText(model.getName());
                 holder.status.setText(model.getStatus());
-                Picasso.get().load(model.getImage()).into(holder.imageView);
+                Picasso.get().load(model.getImage()).placeholder(R.drawable.profile).into(holder.imageView);
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String friend_id = getRef(position).getKey();
+                        Intent profileIntent = new Intent(getContext(),FriendProfileActivity.class);
+                        profileIntent.putExtra("id",friend_id);
+                        startActivity(profileIntent);
+                    }
+                });
             }
 
             @NonNull
