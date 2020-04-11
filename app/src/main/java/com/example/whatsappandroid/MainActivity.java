@@ -126,6 +126,10 @@ public class MainActivity extends AppCompatActivity {
             Intent find_friends_page = new Intent(getApplicationContext(),FindFriendsActivity.class);
             startActivity(find_friends_page);
         }
+        if(item.getItemId()==R.id.new_disc){
+
+
+        }
         return true;
     }
 
@@ -179,6 +183,6 @@ public class MainActivity extends AppCompatActivity {
     private void SettingsPage() {
         Intent settingPage = new Intent(getApplicationContext(),SettingsActivity.class);
         startActivity(settingPage);
-        finish();
+       // finish();
     }
 }
