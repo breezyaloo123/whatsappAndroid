@@ -63,4 +63,21 @@
         android:textAllCaps="false"
         android:textColor="@android:color/background_light"
         />
+
+    <Button
+        android:id="@+id/friend_profile_button_cancel"
+        android:layout_width="match_parent"
+        android:layout_below="@id/friend_profile_button"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttons"
+        android:text="Cancel Chat"
+        android:layout_marginRight="65dp"
+        android:layout_marginLeft="65dp"
+        android:layout_marginTop="6dp"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textAllCaps="false"
+        android:visibility="invisible"
+        android:textColor="@android:color/background_light"
+        />
 </RelativeLayout>

@@ -4,10 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,14 +48,18 @@ public class SettingsActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference ref;
     private StorageReference storageReference;
-    String currentUserid,downloadUrl;
-
+    private String currentUserid,downloadUrl;
+    private MessageHelper helper;
+    private String email,password;
     private static final int galleriID=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        email=getIntent().getExtras().get("email").toString();
+        password=getIntent().getExtras().get("password").toString();
+
         mAuth = FirebaseAuth.getInstance();
         ref = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference().child("Profile Image");
@@ -191,6 +199,26 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
     }
+    private void insertData(String userName, String photoStatus) {
+
+        SQLiteDatabase db = helper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(Message.USERNAME,userName);
+        values.put(Message.STATUS,photoStatus);
+        values.put(Message.EMAIL,email);
+        values.put(Message.PASSWORD,password);
+        values.put(Message.MESSAGE,"");
+        values.put(Message.DATE,"");
+        values.put(Message.TIME,"");
+
+        //String selection = Message._ID + "= "+readData();
+
+        db.insertWithOnConflict(Message.TABLE,null,values,SQLiteDatabase.CONFLICT_REPLACE);
+
+        db.close();
+
+    }
 
     private void SettingsUpdated() {
 
@@ -206,6 +234,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
         else
         {
+           // insertData(userName,photoStatus);
             HashMap<String, String> map= new HashMap<>();
             map.put("uid",currentUserid);
             map.put("name",userName);
@@ -230,6 +259,34 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
     }
+
+//    private void readData() {
+//
+//        SQLiteDatabase db = helper.getReadableDatabase();
+//        String[] request = {
+//                Message._ID,
+//                Message.EMAIL,
+//                Message.PASSWORD
+//        };
+//
+//        Cursor cursor = db.query(Message.TABLE,request,null,null,null,null,null);
+//
+//        while (cursor.moveToNext())
+//        {
+//            String id = cursor.getString(0);
+//            String nn = cursor.getString(1);
+//            String pp = cursor.getString(2);
+//            Log.d("IDD",id);
+//            Log.d("EMAIL",nn);
+//            Log.d("PWD",pp);
+//        }
+//
+//        cursor.close();
+//
+//    }
+
+
+
     private void RetrieveUsers() {
 
         ref.child("users").child(currentUserid).
@@ -241,7 +298,7 @@ public class SettingsActivity extends AppCompatActivity {
                             String retrieveUsername = dataSnapshot.child("name").getValue().toString();
                             String retrieveStatus = dataSnapshot.child("status").getValue().toString();
                             String retrievePhoto = dataSnapshot.child("image").getValue().toString();
-
+                            //insertData(retrieveUsername,retrieveStatus);
                             username.setText(retrieveUsername);
                             photo_status.setText(retrieveStatus);
                             Picasso.get().load(retrievePhoto).into(image);
@@ -251,6 +308,7 @@ public class SettingsActivity extends AppCompatActivity {
                         {
                             String retrieveUsername = dataSnapshot.child("name").getValue().toString();
                             String retrieveStatus = dataSnapshot.child("status").getValue().toString();
+                           // insertData(retrieveUsername,retrieveStatus);
                             username.setText(retrieveUsername);
                             photo_status.setText(retrieveStatus);
                         }

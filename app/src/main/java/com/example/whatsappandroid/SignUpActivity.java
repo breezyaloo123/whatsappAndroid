@@ -4,9 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +31,8 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView account;
     private FirebaseAuth mAuth;
     private DatabaseReference ref;
+    private MessageHelper helper;
+    private String emails,password;
 
     private ProgressDialog loading;
 
@@ -34,6 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        //helper = new MessageHelper(getApplicationContext());
         signButton = findViewById(R.id.sign_button);
         signupemail = findViewById(R.id.sign_email);
         signuppwd = findViewById(R.id.sign_pwd);
@@ -63,9 +70,10 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void CreateAccount() {
+        //SQLiteDatabase db =helper.getWritableDatabase();
 
-        String email = signupemail.getText().toString();
-        String pwd = signuppwd.getText().toString();
+        final String email = signupemail.getText().toString();
+        final String pwd = signuppwd.getText().toString();
         if(TextUtils.isEmpty(email))
         {
             Toast.makeText(getApplicationContext(),"Please enter your Email",Toast.LENGTH_LONG).show();
@@ -76,6 +84,13 @@ public class SignUpActivity extends AppCompatActivity {
         }
         else
         {
+
+//            ContentValues values = new ContentValues();
+//            values.put(Message.EMAIL,email);
+//            values.put(Message.PASSWORD,pwd);
+//            db.insertWithOnConflict(Message.TABLE,null,values,SQLiteDatabase.CONFLICT_REPLACE);
+//            db.close();
+            Log.d("BD","INSERT SUCCESSFULLY"+email+""+pwd);
             loading.setTitle("Creating new Account");
             loading.setMessage("Please wait while we are creating new Account for You");
             loading.setCanceledOnTouchOutside(true);
@@ -87,6 +102,8 @@ public class SignUpActivity extends AppCompatActivity {
 
                             if(task.isSuccessful())
                             {
+                                emails=email;
+                                password=pwd;
                                 String currentUserId=mAuth.getCurrentUser().getUid();
                                 ref.child("users").child(currentUserId).setValue("");
                                 HomePage();
@@ -108,6 +125,8 @@ public class SignUpActivity extends AppCompatActivity {
     private void HomePage() {
 
         Intent home = new Intent(getApplicationContext(),MainActivity.class);
+        home.putExtra("email",emails);
+        home.putExtra("password",password);
         startActivity(home);
         finish();
     }

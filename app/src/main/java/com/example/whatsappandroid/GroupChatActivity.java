@@ -5,7 +5,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -39,15 +42,22 @@ public class GroupChatActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private String currentUserID,currentUserName,currentDate,currentTime;
     private DatabaseReference ref,groupRef,getGroupMessageKeyRef;
-
+    private String userID;
+    private MessageHelper helper;
+    private String email;
+    private String status;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chat);
         currentGroupName = getIntent().getExtras().get("groupName").toString();
-        Toast.makeText(getApplicationContext(),currentGroupName,Toast.LENGTH_LONG).show();
+        userID = getIntent().getExtras().get("userID").toString();
+        helper = new MessageHelper(getApplicationContext());
+        Toast.makeText(getApplicationContext(),userID,Toast.LENGTH_LONG).show();
         mAuth = FirebaseAuth.getInstance();
+        email = mAuth.getCurrentUser().getEmail().toString();
         ref = FirebaseDatabase.getInstance().getReference().child("users");
+
         groupRef = FirebaseDatabase.getInstance().getReference().child("Groups").child(currentGroupName);
 
         currentUserID = mAuth.getCurrentUser().getUid();
@@ -72,6 +82,8 @@ public class GroupChatActivity extends AppCompatActivity {
             }
         });
 
+
+
     }
 
 
@@ -82,6 +94,7 @@ public class GroupChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists())
                 {
+                    status = dataSnapshot.child("status").getValue().toString();
                     currentUserName = dataSnapshot.child("name").getValue().toString();
                 }
 
@@ -101,19 +114,19 @@ public class GroupChatActivity extends AppCompatActivity {
         groupRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (dataSnapshot.exists())
-                {
+
                     DisplayMessages(dataSnapshot);
-                }
+
+
 
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (dataSnapshot.exists())
-                {
+
                     DisplayMessages(dataSnapshot);
-                }
+
+
 
             }
 
@@ -132,6 +145,7 @@ public class GroupChatActivity extends AppCompatActivity {
 
             }
         });
+        //loadMessages();
     }
 
 
@@ -155,6 +169,8 @@ public class GroupChatActivity extends AppCompatActivity {
             SimpleDateFormat format1 = new SimpleDateFormat("hh:mm a");
             currentTime = format1.format(calendar1.getTime());
 
+
+
             HashMap<String, Object> groupmessages = new HashMap<>();
 
             groupRef.updateChildren(groupmessages);
@@ -165,10 +181,53 @@ public class GroupChatActivity extends AppCompatActivity {
             messageInfo.put("message",message);
             messageInfo.put("Date",currentDate);
             messageInfo.put("Time",currentTime);
-
             getGroupMessageKeyRef.updateChildren(messageInfo);
 
+            SQLiteDatabase db = helper.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(Message.USERNAME,currentUserName);
+            values.put(Message.STATUS,status);
+            values.put(Message.EMAIL,email);
+            values.put(Message.PASSWORD,"");
+            values.put(Message.MESSAGE,message);
+            values.put(Message.DATE,currentDate);
+            values.put(Message.TIME,currentTime);
+            values.put(Message.GROUPS,currentGroupName);
+            //String selection = Message._ID + " LIKE "+userID;
+            //db.update(Message.TABLE,values,selection,null);
+            db.insertWithOnConflict(Message.TABLE,null,values,SQLiteDatabase.CONFLICT_REPLACE);
+            db.close();
+
         }
+    }
+
+    private void loadMessages()
+    {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String[] request = {
+                Message._ID,
+                Message.USERNAME,
+                Message.PASSWORD,
+                Message.EMAIL,
+                Message.PASSWORD,
+                Message.MESSAGE,
+                Message.DATE,
+                Message.TIME
+        };
+    String selection = Message.GROUPS + " LIKE "+currentGroupName;
+       Cursor cursor = db.query(Message.TABLE,request,selection,null,null,null,null);
+       while (cursor.moveToNext())
+       {
+           String name= cursor.getString(1);
+           String message = cursor.getString(5);
+           String date = cursor.getString(6);
+           String time = cursor.getString(7);
+           textView.append(name + " : \n" + message + "\n" +time + "       "+date + "\n\n\n");
+           Myview.fullScroll(ScrollView.FOCUS_DOWN);
+       }
+
+
     }
 
     private void DisplayMessages(DataSnapshot dataSnapshot)
