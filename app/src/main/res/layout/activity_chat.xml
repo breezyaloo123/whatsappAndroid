@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/darker_gray"
+    tools:context=".ChatActivity">
+
+
+    <include
+        android:id="@+id/private_chat_bar"
+        layout="@layout/layout_app_bar"
+        ></include>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/private_messages_list_users"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/linear2"
+        android:layout_below="@id/private_chat_bar"
+
+        />
+
+    <LinearLayout
+        android:id="@+id/linear2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="5"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        >
+        <EditText
+            android:id="@+id/edit_private_chat"
+            android:layout_width="0dp"
+            android:padding="17dp"
+            android:hint="Enter your message"
+            android:layout_weight="4"
+            android:layout_height="wrap_content"/>
+        <ImageButton
+            android:id="@+id/send_private_chat_button"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_send"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+
+</RelativeLayout>

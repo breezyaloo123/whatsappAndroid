@@ -57,8 +57,8 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        email=getIntent().getExtras().get("email").toString();
-        password=getIntent().getExtras().get("password").toString();
+//        email=getIntent().getExtras().get("email").toString();
+  //      password=getIntent().getExtras().get("password").toString();
 
         mAuth = FirebaseAuth.getInstance();
         ref = FirebaseDatabase.getInstance().getReference();
@@ -235,11 +235,11 @@ public class SettingsActivity extends AppCompatActivity {
         else
         {
            // insertData(userName,photoStatus);
-            HashMap<String, String> map= new HashMap<>();
+            HashMap<String, Object> map= new HashMap<>();
             map.put("uid",currentUserid);
             map.put("name",userName);
             map.put("status",photoStatus);
-            ref.child("users").child(currentUserid).setValue(map)
+            ref.child("users").child(currentUserid).updateChildren(map)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {

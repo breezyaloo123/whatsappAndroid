@@ -244,11 +244,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SettingsPage() {
-        email=getIntent().getExtras().get("email").toString();
-        password=getIntent().getExtras().get("password").toString();
+//        email=getIntent().getExtras().get("email").toString();
+//        password=getIntent().getExtras().get("password").toString();
         Intent settingPage = new Intent(getApplicationContext(),SettingsActivity.class);
-        settingPage.putExtra("email",email);
-        settingPage.putExtra("password",password);
+       // settingPage.putExtra("email",email);
+      //  settingPage.putExtra("password",password);
         startActivity(settingPage);
        // finish();
     }

@@ -219,7 +219,7 @@ public class FriendProfileActivity extends AppCompatActivity {
                                         state="new";
                                         sendMessage.setText("send Chat");
 
-                                        cancelMessage.setVisibility(View.VISIBLE);
+                                        cancelMessage.setVisibility(View.INVISIBLE);
                                         cancelMessage.setEnabled(false);
                                     }
 
@@ -234,13 +234,13 @@ public class FriendProfileActivity extends AppCompatActivity {
 
     private void AcceptChat()
     {
-        contactRef.child(currentUserID).child(friend_id).child("contacts").setValue("Saved")
+        contactRef.child(currentUserID).child(friend_id).child("Contacts").setValue("Saved")
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful())
                         {
-                            contactRef.child(friend_id).child(currentUserID).child("contacts").setValue("Saved")
+                            contactRef.child(friend_id).child(currentUserID).child("Contacts").setValue("Saved")
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
@@ -298,7 +298,7 @@ public class FriendProfileActivity extends AppCompatActivity {
                                         state="new";
                                         sendMessage.setText("send Chat");
 
-                                        cancelMessage.setVisibility(View.VISIBLE);
+                                        cancelMessage.setVisibility(View.INVISIBLE);
                                          cancelMessage.setEnabled(false);
                                     }
 

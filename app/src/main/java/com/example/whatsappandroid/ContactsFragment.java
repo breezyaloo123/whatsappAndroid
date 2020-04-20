@@ -16,8 +16,11 @@ import android.widget.TextView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -30,7 +33,7 @@ public class ContactsFragment extends Fragment {
 
     private View contactView;
     private RecyclerView recyclerView;
-    private DatabaseReference ref;
+    private DatabaseReference ref,userRef;
     private FirebaseAuth mAuth;
     private String currentUserId;
 
@@ -46,7 +49,8 @@ public class ContactsFragment extends Fragment {
         contactView= inflater.inflate(R.layout.fragment_contacts, container, false);
         mAuth = FirebaseAuth.getInstance();
         currentUserId = mAuth.getCurrentUser().getUid();
-        ref = FirebaseDatabase.getInstance().getReference().child("users");
+        ref = FirebaseDatabase.getInstance().getReference().child("Contacts").child(currentUserId);
+        userRef = FirebaseDatabase.getInstance().getReference().child("users");
         recyclerView = contactView.findViewById(R.id.contacts_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -61,17 +65,36 @@ public class ContactsFragment extends Fragment {
                 .build();
         FirebaseRecyclerAdapter<Contacts, ContactsViewHolder> adapter = new FirebaseRecyclerAdapter<Contacts, ContactsViewHolder>(options) {
             @Override
-            protected void onBindViewHolder(@NonNull ContactsViewHolder holder, final int position, @NonNull Contacts model) {
-                holder.username.setText(model.getName());
-                holder.status.setText(model.getStatus());
-                Picasso.get().load(model.getImage()).placeholder(R.drawable.profile).into(holder.imageView);
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
+            protected void onBindViewHolder(@NonNull final ContactsViewHolder holder, final int position, @NonNull Contacts model) {
+
+                String userID = getRef(position).getKey();
+                userRef.child(userID).addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onClick(View view) {
-                        String friend_id = getRef(position).getKey();
-                        Intent profileIntent = new Intent(getContext(),FriendProfileActivity.class);
-                        profileIntent.putExtra("id",friend_id);
-                        startActivity(profileIntent);
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+                    {
+                        if (dataSnapshot.hasChild("image"))
+                        {
+                            String profileimage = dataSnapshot.child("image").getValue().toString();
+                            String username = dataSnapshot.child("name").getValue().toString();
+                            String status = dataSnapshot.child("status").getValue().toString();
+                            holder.username.setText(username);
+                            holder.status.setText(status);
+                            Picasso.get().load(profileimage).placeholder(R.drawable.profile).into(holder.imageView);
+                        }
+                        else
+                        {
+                            String username = dataSnapshot.child("name").getValue().toString();
+                            String status = dataSnapshot.child("status").getValue().toString();
+                            holder.username.setText(username);
+                            holder.status.setText(status);
+
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                     }
                 });
             }
