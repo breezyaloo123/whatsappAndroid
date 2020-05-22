@@ -1,8 +1,10 @@
 package com.example.whatsappandroid;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -308,6 +310,12 @@ public class FriendProfileActivity extends AppCompatActivity {
 
             }
         });
+    }
+    private void alert()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+
+
     }
 
 

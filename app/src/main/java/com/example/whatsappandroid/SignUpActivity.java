@@ -94,6 +94,7 @@ public class SignUpActivity extends AppCompatActivity {
             loading.setTitle("Creating new Account");
             loading.setMessage("Please wait while we are creating new Account for You");
             loading.setCanceledOnTouchOutside(true);
+
             loading.show();
             mAuth.createUserWithEmailAndPassword(email,pwd)
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
